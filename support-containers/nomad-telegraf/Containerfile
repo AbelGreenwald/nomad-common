@@ -1,0 +1,13 @@
+FROM docker://telegraf:1.25
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    sudo \
+    fail2ban && \
+	rm -rf /var/lib/apt/lists/*
+
+# Allow telegraf to sudo only for fail2ban-client command
+RUN /bin/sed -i 's/%sudo\tALL=(ALL:ALL) ALL/\%sudo\tALL=(ALL) NOPASSWD: \/usr\/bin\/fail2ban-client/g' /etc/sudoers
+RUN usermod -aG sudo telegraf
+
+RUN /bin/sed -i 's/socket = \/var\/run\/fail2ban\/fail2ban.sock/socket = \/alloc\/tmp\/fail2ban\/fail2ban.sock/g' /etc/fail2ban/fail2ban.conf

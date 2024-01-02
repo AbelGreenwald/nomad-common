@@ -1,0 +1,24 @@
+#!/bin/fish
+
+set CONTAINERNAME "abelgreenwald/nomad-nginx"
+set DATE $(date +%s)
+
+set_color green
+echo "Building container"
+set_color normal
+podman build . -t {$CONTAINERNAME}:{$DATE}
+
+
+set_color green
+echo "Copying image to root registry"
+set_color normal
+sudo podman image scp abel@localhost::{$CONTAINERNAME}:{$DATE} root@localhost:: 
+
+set_color green
+echo "Copying image to public registry"
+set_color normal
+podman push {$CONTAINERNAME}:{$DATE}
+
+set_color green
+echo "pushed: {$CONTAINERNAME}:{$DATE}"
+set_color normal

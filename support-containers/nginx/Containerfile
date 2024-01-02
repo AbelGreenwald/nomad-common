@@ -1,0 +1,7 @@
+FROM docker://nginx:latest
+
+COPY ./files/bad_agent.conf        /etc/nginx/conf.d/bad_agent.conf
+COPY ./files/bad_referer.conf     /etc/nginx/conf.d/bad_referer.conf
+
+RUN mkdir /etc/nginx/templates/
+COPY ./files/http.conf.template /etc/nginx/templates/http.conf.template

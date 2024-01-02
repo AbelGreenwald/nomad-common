@@ -1,0 +1,33 @@
+upstream backend {
+    server $NOMAD_HOST_ADDR_backend;
+}
+
+server {
+  listen $NOMAD_HOST_PORT_frontend;
+  server_name               $NGINX_SERVER_NAME;
+  add_header                Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header                X-XSS-Protection "1; mode=block" always;
+  add_header                X-Frame-Options SAMEORIGIN;
+  add_header                X-Content-Type-Options nosniff;
+  add_header                Allow "GET, POST, HEAD" always;
+  location / {
+    proxy_set_header   X-Real-IP $remote_addr;
+    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header   Host $http_host;
+    proxy_set_header   Upgrade $http_upgrade;
+    proxy_set_header   Connection "upgrade";
+    proxy_http_version 1.1;
+    proxy_redirect     off;
+    proxy_buffering    off;
+    proxy_pass         http://backend;
+  }
+  if ( $request_method !~ ^(GET|POST|PUT|HEAD|PATCH)$ ) {
+    return 405;
+  }
+  if ($bad_referer) {
+    return 444;
+  }
+  if ($bad_agent) {
+    return 403;
+  }
+}

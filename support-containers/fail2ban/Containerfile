@@ -1,0 +1,8 @@
+FROM docker://crazymax/fail2ban:latest
+
+COPY files/opnsense_firewall_alias_manager /usr/local/bin
+COPY files/filters/nginx-http-jupyter.conf /data/filter.d/nginx-http-jupyter.conf
+COPY files/jails/jail.conf /etc/fail2ban/jail.conf
+COPY files/actions/opnsense_ip_ban.conf /data/action.d/opnsense_ip_ban.conf
+
+RUN /bin/sed -i 's/socket = \/var\/run\/fail2ban\/fail2ban.sock/socket = \/alloc\/tmp\/fail2ban\/fail2ban.sock/g' /etc/fail2ban/fail2ban.conf
