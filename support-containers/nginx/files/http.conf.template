@@ -1,5 +1,5 @@
 upstream backend {
-    server $NOMAD_HOST_ADDR_backend;
+    server 127.0.0.1:$NOMAD_PORT_backend;
 }
 
 server {
@@ -21,7 +21,25 @@ server {
     proxy_buffering    off;
     proxy_pass         http://backend;
   }
-  if ( $request_method !~ ^(GET|POST|PUT|HEAD|PATCH)$ ) {
+  location /metrics {
+    return 404;
+  }
+  location /ready {
+    if ($host != 172.17.69.100) {
+        return 404;
+    }
+  }
+#  location /health {
+#    if ($host != 172.17.69.100) {
+#      return 404;
+#    }
+#  }
+  location /debug {
+    if ($host != 172.17.69.100) {
+      return 404;
+    }
+  }
+  if ( $request_method !~ ^(GET|POST|PUT|HEAD|PATCH|DELETE)$ ) {
     return 405;
   }
   if ($bad_referer) {
