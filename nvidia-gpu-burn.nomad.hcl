@@ -8,17 +8,20 @@ job "gpu-test" {
       leader = true
       config {
         image = "docker://oguzpastirmaci/gpu-burn"
-        command = "1200"
+        command = "60"
       }
 
       resources {
-        device "nvidia/gpu/Tesla" {
+        cpu    = 1000
+        memory = 2048
+        device "nvidia/gpu" {
+            affinity {
+              attribute = "${device.model}"
+              #value     = "GeForce GTX 1080"
+              value     = "P100-PCIE-16GB"
+              weight    = 50
+            }
           count = 1
-          affinity {
-            attribute = "${device.model}"
-            value     = "P100-PCIE-16GB"
-            weight    = 50
-          }
         }
       }
     }

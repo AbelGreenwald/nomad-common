@@ -38,39 +38,39 @@ job "postgres" {
         mode     = "delay"
       }
     }
-    task "telegraf" {
-      driver = "podman"
-      user   = "telegraf"
-      leader = false
-      config {
-        image = "docker://telegraf:1.25"
-        args  = ["--config", "http://172.17.69.100:8086/api/v2/telegrafs/0c4d384f7fd18000"]
-      }
+    #task "telegraf" {
+    #  driver = "podman"
+    #  user   = "telegraf"
+    #  leader = false
+    #  config {
+    #    image = "docker://telegraf:1.25"
+    #    args  = ["--config", "http://172.17.69.100:8086/api/v2/telegrafs/0c4d384f7fd18000"]
+    #  }
+#
+ #     vault {
+ #      role = "nomad-postgres"
+ #     }
 
-      vault {
-        role = "nomad-postgres"
-      }
-
-      template {
-        data = <<EOF
-          INFLUX_TOKEN={{with secret "kv/data/default/postgres/telegraf/config"}}{{.Data.data.INFLUX_TOKEN}}{{ end }}
-          PG_USER={{with secret "kv/data/default/postgres/telegraf/config"}}{{.Data.data.PG_USER}}{{ end }}
-          PG_PASSWORD={{with secret "kv/data/default/postgres/telegraf/config"}}{{.Data.data.PG_PASSWORD}}{{ end }}
-        EOF
-        destination = "secrets/env"
-        env         = true
-      }
-      lifecycle {
-        sidecar = true
-      }
-      restart {
-        delay    = "60s"
-        mode     = "delay"
-      }
-      resources {
-        cpu    = 250
-        memory = 512
-      }
-    }
+ #     template {
+ #       data = <<EOF
+ #         INFLUX_TOKEN={{with secret "kv/data/default/postgres/telegraf/config"}}{{.Data.data.INFLUX_TOKEN}}{{ end }}
+ #         PG_USER={{with secret "kv/data/default/postgres/telegraf/config"}}{{.Data.data.PG_USER}}{{ end }}
+ #         PG_PASSWORD={{with secret "kv/data/default/postgres/telegraf/config"}}{{.Data.data.PG_PASSWORD}}{{ end }}
+ #       EOF
+ #       destination = "secrets/env"
+ #       env         = true
+ #     }
+ #     lifecycle {
+ #       sidecar = true
+ #     }
+ #     restart {
+ #       delay    = "60s"
+ #       mode     = "delay"
+ #     }
+ #     resources {
+ #       cpu    = 250
+ #       memory = 512
+ #     }
+ #   }
   }
 }

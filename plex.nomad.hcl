@@ -26,9 +26,9 @@ job "plex" {
           "plex"
         ]
         volumes = [
-          "/mnt/nomad/plex/config/config:/config",
-          "/mnt/nomad/plex/config/transcode:/transcode",
-          "/mnt/nomad/plex/config/data:/data",
+          "/mnt/plex/config:/config",
+          "/mnt/plex/transcode:/transcode",
+          "/mnt/plex/data:/data",
         ]
       }
       env {
@@ -36,6 +36,20 @@ job "plex" {
         PLEX_UID = 955
         PLEX_GID = 955
       }
+
+      resources {
+        cpu    = 1000
+        memory = 2048
+        device "nvidia/gpu" {
+            affinity {
+              attribute = "${device.model}"
+              value     = "GeForce GTX 1080"
+              weight    = 100
+            }
+          count = 1
+        }
+      }
+
       vault {}
 
       template {
@@ -57,14 +71,14 @@ job "plex" {
       user = "telegraf"
       config {
         image = "docker://telegraf:1.25"
-        args  = ["--config", "http://172.17.69.100:8086/api/v2/telegrafs/0abf36d156954000"]
+        args  = ["--config", "https://influx.abelswork.net/api/v2/telegrafs/0abf36d156954000"]
       }
 
       vault {}
 
       template {
         data = <<EOF
-          INFLUX_TOKEN={{with secret "kv/data/default/jupyter/config"}}{{.Data.data.INFLUX_TOKEN}}{{ end }}
+          INFLUX_TOKEN={{with secret "kv/data/default/plex/config"}}{{.Data.data.INFLUX_TOKEN}}{{ end }}
         EOF
         destination = "secrets/env"
         env         = true
@@ -76,18 +90,6 @@ job "plex" {
         delay    = "30s"
         mode     = "delay"
       }
-      #resources {
-      #  cpu    = 250
-      #  memory = 512
-      #  device "nvidia/gpu/Tesla" {
-      #    count = 1
-      #    affinity {
-      #      attribute = "${device.model}"
-      #      value     = "P100-PCIE-16GB"
-      #      weight    = 50
-      #    }
-      #  }
-      #}
     }
   }
 }

@@ -6,10 +6,23 @@ job "odoo" {
     network {
       port "backend" {
         to = 8069
-        }
+      }
       port "frontend" {
         static = 8069
       }
+    }
+
+    service {
+      name     = "odoo"
+      port     = "frontend"
+      provider = "nomad"
+    }
+
+    reschedule {
+      delay          = "30s"
+      delay_function = "constant"
+      max_delay      = "90s"
+      unlimited      = true
     }
 
     task "odoo" {
@@ -26,14 +39,16 @@ job "odoo" {
       env {
         HOST = "epimetheus"
       }
+
+      restart {
+        attempts = 3
+        delay    = "15s"
+        interval = "10m"
+        mode     = "delay"
+      }
       resources {
         cpu    = 1000
         memory = 768
-      }
-
-      restart {
-        delay    = "30s"
-        mode     = "delay"
       }
     }
 
@@ -49,6 +64,11 @@ job "odoo" {
         NGINX_SERVER_NAME = "odoo.abelswork.net"
       }
 
+      restart {
+        delay    = "30s"
+        mode     = "delay"
+      }
+
       resources {
         cpu    = 250
         memory = 128
@@ -60,14 +80,14 @@ job "odoo" {
       user = "telegraf"
       config {
         image = "docker://telegraf:1.25"
-        args  = ["--config", "http://172.17.69.100:8086/api/v2/telegrafs/0abf36d156954000"]
+        args  = ["--config", "https://influx.abelswork.net/api/v2/telegrafs/0abf36d156954000"]
       }
 
       vault {}
 
       template {
         data = <<EOF
-          INFLUX_TOKEN={{with secret "kv/data/default/jupyter/config"}}{{.Data.data.INFLUX_TOKEN}}{{ end }}
+          INFLUX_TOKEN={{with secret "kv/data/default/odoo/config"}}{{.Data.data.INFLUX_TOKEN}}{{ end }}
         EOF
         destination = "secrets/env"
         env         = true
@@ -75,10 +95,7 @@ job "odoo" {
       lifecycle {
         sidecar = true
       }
-      restart {
-        delay    = "30s"
-        mode     = "delay"
-      }
+
       resources {
         cpu    = 250
         memory = 512
